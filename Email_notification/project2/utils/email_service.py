@@ -14,6 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = BASE_DIR / "template"  # Make sure this matches your folder name
 
 # Debug: Print the path (check console when server starts)
+<<<<<<< HEAD
 logger.info(f"📁 BASE_DIR: {BASE_DIR}")
 logger.info(f"📁 TEMPLATE_DIR: {TEMPLATE_DIR}")
 logger.info(f"📁 TEMPLATE_DIR exists: {TEMPLATE_DIR.exists()}")
@@ -24,6 +25,18 @@ logger.info(f"📄 email.html exists: {EMAIL_TEMPLATE.exists()}")
 
 if not EMAIL_TEMPLATE.exists():
     logger.error(f"❌ Template file not found at: {EMAIL_TEMPLATE}")
+=======
+logger.info(f" BASE_DIR: {BASE_DIR}")
+logger.info(f" TEMPLATE_DIR: {TEMPLATE_DIR}")
+logger.info(f" TEMPLATE_DIR exists: {TEMPLATE_DIR.exists()}")
+
+# Check if email.html exists
+EMAIL_TEMPLATE = TEMPLATE_DIR / "email.html"
+logger.info(f" email.html exists: {EMAIL_TEMPLATE.exists()}")
+
+if not EMAIL_TEMPLATE.exists():
+    logger.error(f" Template file not found at: {EMAIL_TEMPLATE}")
+>>>>>>> Email
     logger.error(f"   Please create: {EMAIL_TEMPLATE}")
 
 env = Environment(
@@ -60,9 +73,18 @@ def send_credentials_email(to: str, username: str, password: str, org_name: str)
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.sendmail(EMAIL_FROM, to, message.as_string())
         
+<<<<<<< HEAD
         logger.info(f"✅ Email sent successfully to {to}")
         return True
         
     except Exception as e:
         logger.error(f"❌ Error sending email to {to}: {str(e)}")
         return False
+=======
+        logger.info(f" Email sent successfully to {to}")
+        return True
+        
+    except Exception as e:
+        logger.error(f" Error sending email to {to}: {str(e)}")
+        return False
+>>>>>>> Email
