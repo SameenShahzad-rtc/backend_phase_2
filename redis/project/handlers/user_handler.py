@@ -5,7 +5,7 @@ from config.config import STRIPE_SECRET_KEY
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status,BackgroundTasks
 from models.user import User
-from jwt import verify_password
+from jwt import verify_password,get_pwd_hash
 from models.organization import Organization
 from utils.redis_service import cache_get, cache_set, cache_delete
 
@@ -41,7 +41,7 @@ def get_user_by_email(db: Session, email: str):
             "email": user.email,
             "role_name": user.role_name
         }
-        cache_set(f"user_email:{email}", user_dict, expire_seconds=600)
+        cache_set(f"user_email:{email}", user_dict, expire_seconds=120)
     
     return user
 
@@ -80,7 +80,7 @@ def get_user_by_username(db: Session, username: str):
             "stripe_customer_id": user.stripe_customer_id,
             "stripe_subscription_id": user.stripe_subscription_id
         }
-        cache_set(f"user_name:{username}", user_dict, expire_seconds=600)
+        cache_set(f"user_name:{username}", user_dict, expire_seconds=120)
     
     return user
 
@@ -106,15 +106,24 @@ def get_user_by_id(db: Session, user_id: int):
     
     # Cache the result (10 minutes)
     if user:
+        hashed_password = get_pwd_hash(user.password),
         user_dict = {
             "id": user.id,
             "username": user.username,
             "email": user.email,
+            "password": hashed_password ,
             "role_name": user.role_name,
-            "org_id": user.org_id
+            "org_id": user.org_id,
+            "stripe_payment_method_id": user.stripe_payment_method_id,
+            "pricing_plan": user.pricing_plan,
+            "is_active": user.is_active,
+            "first_login_done": user.first_login_done,
+            "stripe_customer_id": user.stripe_customer_id,
+            "stripe_subscription_id": user.stripe_subscription_id
 
         }
-        cache_set(f"user_id:{user_id}", user_dict, expire_seconds=600)
+        
+        cache_set(f"user_id:{user_id}", user_dict, expire_seconds=120)
     
     return user
 def get_user_by_org_id(db: Session, org_id: int):
@@ -151,7 +160,7 @@ def get_org_by_id(db: Session, org_id: int):
 
 
         }
-        cache_set(f"org_id:{org_id}", org_dict, expire_seconds=600)
+        cache_set(f"org_id:{org_id}", org_dict, expire_seconds=120)
     
     return org
 
@@ -334,9 +343,13 @@ def update_user(db: Session, user: User,u_id:int, u:User):
                 detail=f"Organization with ID {u.org_id} already has an admin: {existing_org_admin.username}"
                 )
 
-
-
     db_user = get_user_by_id(db, u_id)
+
+    if u.password:
+        hashed_password = get_pwd_hash(u.password)
+    else:
+         hashed_password=db_user.password
+    
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -344,6 +357,8 @@ def update_user(db: Session, user: User,u_id:int, u:User):
         )
     db_user.username = u.username
     db_user.email = u.email
+    db_user.password = hashed_password
+    
     db_user.org_id = u.org_id
     db_user.role_name = u.role_name
     db_user.stripe_payment_method_id = u.stripe_payment_method_id
@@ -416,7 +431,7 @@ def show_all_users(db: Session, page: int, no_records: int, search: str, current
             "pages": 0,
             "data": []
         }
-        cache_set(cache_key, result, expire_seconds=300)
+        cache_set(cache_key, result, expire_seconds=120)
         return result
     
     # Calculate pages
@@ -450,7 +465,7 @@ def show_all_users(db: Session, page: int, no_records: int, search: str, current
     }
     
     #  Cache the complete result (10 minutes)
-    cache_set(cache_key, result, expire_seconds=600)
+    cache_set(cache_key, result, expire_seconds=120)
     logger.info(f" Cached: {cache_key}")
     
     return result
@@ -489,7 +504,7 @@ def showOrganization(db: Session ):
         for o in orgs
     ]
     
-    cache_set("orgs:all", orgs_data, expire_seconds=600)
+    cache_set("orgs:all", orgs_data, expire_seconds=120)
     logger.info(f" Cached: orgs:all")
     
     return orgs_data

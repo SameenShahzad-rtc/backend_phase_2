@@ -7,7 +7,7 @@ from models.subtasks import Subtask
 #creating table structure or model
 class Task(Base):
     __tablename__ = "task"
-    # __table_args__ = ({"schema": "org1"},)
+    
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)

@@ -15,21 +15,6 @@ from schemas.organization_schema import organizationDetails,organizationin,organ
 
 user_routes=APIRouter()
 
-# d_user can register and login 
-# admin create d_user by go to regiester,delete d_user,show all users
-
-# to create super-admin
-
-# @user_routes.post('/register',response_model=Userout)
-# def userReg(u:UserRegister,db:Session=Depends(get_db)):
-
-#     d_user=get_user_by_email(db,u.email)
-#     if d_user:
-#         raise HTTPException(status_code=status.HTTP_208_ALREADY_REPORTED,detail="d_user already register")
-#     hashed_password = get_pwd_hash(u.password)
-    
-#     return create_user(db,hashed_password,u)
-
 
 
 
@@ -83,7 +68,7 @@ def user_login(
             d_user.is_active = True
             d_user.stripe_customer_id = customer.id
             d_user.stripe_subscription_id = subscription.id
-            d_user.stripe_payment_method_id = d_user.stripe_payment_method_id#"pm_card_visa"  # Save for reference
+            d_user.stripe_payment_method_id = d_user.stripe_payment_method_id#"pm_card_visa" 
             db.commit()
             db.refresh(d_user)
 
@@ -106,22 +91,6 @@ def user_login(
         "token_type": "bearer",
         "message": "User is now logged in successfully"
     }    
-# #for manager to see all team leads
-# @user_routes.get("/team_leads",response_model=list[Userout])
-# def show_team_leads(db: Session = Depends(get_db), current_user: User = Depends(role_required("manager"))):
-   
-#     return get_team_leads(db)
-#get all dev for team lead 
-# @user_routes.get("/developers",response_model=list[Userout])
-# def get_developers(db: Session = Depends(get_db), current_user: User = Depends(role_required("team_lead"))):
-    
-#     return show_developers(db)
-
-
-
-#fun for admin
-#create d_user by registering them
-#delete d_user
 
 #for admin to see all users
 @user_routes.get("/users",response_model=Page[Userout])

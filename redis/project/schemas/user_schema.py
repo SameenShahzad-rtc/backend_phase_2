@@ -58,7 +58,7 @@ class Userupdate(BaseModel):
     #id :int
     username :str=Field(...,min_length=3)
     email:EmailStr
-    # password :str=Field(...,min_length=5)
+    password :str|None=Field(...,min_length=5 )
     role_name:User_roles
     org_id:int|None=None
 

@@ -187,7 +187,7 @@ def get_project_tasks(db: Session, project_id: int, user:User, page: int, no_rec
         
         
         # Cache the result
-        cache_set(cache_key, result, expire_seconds=600)
+        cache_set(cache_key, result, expire_seconds=120)
         logger.info(f"Cached: {cache_key}")
         
         return result 
@@ -201,7 +201,7 @@ def get_project_tasks(db: Session, project_id: int, user:User, page: int, no_rec
                 "pages": 0,
                 "data": []
             }
-            cache_set(cache_key, result, expire_seconds=300)
+            cache_set(cache_key, result, expire_seconds=120)
             return result
     
         start = (page - 1) * no_records
@@ -254,101 +254,17 @@ def get_project_tasks(db: Session, project_id: int, user:User, page: int, no_rec
     }
         
         # Cache the result
-        cache_set(cache_key, result, expire_seconds=600)
+        cache_set(cache_key, result, expire_seconds=120)
         logger.info(f"Cached: {cache_key}")
         
         return result 
     
    
-# def get_project_tasks(db: Session, project_id: int, user: User, page: int, no_records: int, search: str):
-    """Get paginated list of tasks for a project with caching"""
-    
-    cache_key = f"tasks:{user.org_id}:{project_id}:page:{page}:size:{no_records}"
-    
-    if search:
-        cache_key += f":search:{search}"
-    
-    cached = cache_get(cache_key)
-    if cached:
-        logger.info(f"Cache hit: {cache_key}")
-        return cached
-    
-    logger.info(f"Cache miss: {cache_key}")
-    
-    tasks_query = get_task_by_id(db, project_id, user)
-    
-    if search:
-        tasks_query = tasks_query.filter(
-            (Task.title.ilike(f"%{search}%")) |
-            (Task.project_id == project_id) |
-            (Task.assigned_to == user.id)
-        )
-
-    total = len(tasks_query)
-    
-    if total == 0:
-        result = {
-            "page": page,
-            "records": no_records,
-            "total": 0,
-            "pages": 0,
-            "data": []
-        }
-        cache_set(cache_key, result, expire_seconds=300)
-        return result
-
-    pages = (total + no_records - 1) // no_records
-    
-    if page > pages:
-        raise HTTPException(status_code=404, detail="Page out of range")
-    
-    start = (page - 1) * no_records
-    paginated_tasks = tasks_query.offset(start).limit(no_records).all()
-    
-    tasks_data = []
-    for task in paginated_tasks:
-        
-        tasks_data.append({
-            "id": task.id,
-            "title": task.title,
-            "des": task.des,
-            "status": task.status,
-            "project_id": task.project_id,
-            "assigned_to": task.assigned_to,
-            "assigned_user": None
-        })
-    
-    result = {
-        "page": page,
-        "records": no_records,
-        "total": total,
-        "pages": pages,
-        "data": tasks_data
-    }
-    
-    cache_set(cache_key, result, expire_seconds=600)
-    logger.info(f"Cached: {cache_key}")
-    
-    return result
-
 
 
 def update_task(db: Session, task_id: int, user: User,t:tasksIn):
 
-    
-    # if user.role_name == "org_admin":
-    #     # Admin can update everything
-    #     task.title = t.title
-    #     task.des   = t.des
-    #     task.status = t.status
-    # else:
-    #     # Regular user → only status
-    #     task.status = t.status
-    #     #  warning if client tried to change other fields
-    #     if t.title != task.title or t.des != task.des:
-            
-    #          raise HTTPException(422, "Regular users can only update status")
-     
+  
     task = get_task_by_id(db, task_id)
     
     if not task:
@@ -366,11 +282,7 @@ def update_task(db: Session, task_id: int, user: User,t:tasksIn):
 
 def delete_task(db: Session, task_id: int, user: User):
 
-    # task = db.query(Task).join(Project).filter(
-    #     Task.id == task_id,
-    #     Project.owner_id == user.id,
-    #     Project.org_id == user.org_id
-    # ).first()
+    
     task = get_task_by_id(db, task_id)
     if not task:
         raise HTTPException(

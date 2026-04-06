@@ -116,11 +116,20 @@ def get_tenant_db_with_user(
 ):
     """Wrapper to get tenant DB with org_id from current_user"""
     
-    # Get org_id from user
+    
     if current_user.role_name == "super_admin":
         if not current_user.org_id:
-            # raise HTTPException(status_code=400, detail="Super admin must have org_id")
+           
             org_id = None
+        gen = get_db()
+        try:
+            db = next(gen)
+            yield db
+        finally:
+            try:
+                next(gen)
+            except StopIteration:
+                pass
         
     else:
         org_id = current_user.org_id
