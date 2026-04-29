@@ -84,7 +84,7 @@ A production-ready, full-featured real-time chat application built with **FastAP
 
 ### Frontend
 
-- **Vanilla JavaScript** - No framework dependencies, lightweight
+- **JavaScript** - No framework dependencies, lightweight
 - **HTML5** - Semantic markup and WebRTC APIs
 - **CSS3** - Modern styling with animations and flexbox
 - **WebRTC API** - Browser-based real-time communication
